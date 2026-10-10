@@ -1,0 +1,32 @@
+# Optional: configuration management on top of Terraform-provisioned instances.
+# Terraform builds the infrastructure; Ansible configures what runs on it.
+# Instances are private, so connect through SSM:
+#   ansible-playbook -i inventory.aws_ec2.yml site.yml   (needs amazon.aws + community.aws collections)
+- name: Harden and configure web servers
+  hosts: all
+  become: true
+  tasks:
+    - name: Ensure nginx is installed
+      ansible.builtin.dnf:
+        name: nginx
+        state: present
+
+    - name: Hide nginx version
+      ansible.builtin.lineinfile:
+        path: /etc/nginx/nginx.conf
+        regexp: '^\s*server_tokens'
+        line: '    server_tokens off;'
+        insertafter: '^http \{'
+      notify: Restart nginx
+
+    - name: Ensure nginx is running and enabled
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Restart nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted

@@ -1,0 +1,3 @@
+bucket         = "YOUR-UNIQUE-STATE-BUCKET"
+region         = "ap-south-1"
+dynamodb_table = "terraform-state-locks"
